@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Social Media</title>
+        <style>
+        .ctn {
+            border: 1px solid black;
+            display: flex;
+            justify-content: space-between;
+            font-size: 30px;
+            padding: 10px;
+            align-items: center;
+        }
+        
+        .nav {
+            display: flex;
+            width: 450px;
+            justify-content: space-around;
+        }
+        
+        .btn {
+            padding: 10px;
+            cursor: pointer;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #search {
+            padding: 10px;
+            border-radius: 2px;
+        }
+        
+        .Username {
+            background-color: blue;
+            font-weight: 400;
+            color: aliceblue;
+            padding: 5px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .logo {
+            font-weight: 800;
+        }
+        
+        .Post {
+            width: 500px;
+            background-color: brown;
+            color: white;
+            padding: 20px;
+            margin: 30px;
+            margin-left: 300px;
+            text-align: justify;
+            display: flex;
+            flex-direction: column;
+
+           
+        }
+        
+        .PostTittle {
+            font-size: 25px;
+            color: white;
+        }
+        
+        .Comment {
+            display: block;
+            width: fit-content;
+            margin: 15px;
+            padding: 8px 15px;
+            font-size: 15px;
+        }
+        
+        .LikeComment {
+            display: flex;
+        }
+        
+        .Like {
+            display: block;
+            width: fit-content;
+            margin: 15px;
+            padding: 8px 15px;
+            font-size: 15px;
+        }
+       #msgctn{
+        height: 300px;
+        overflow: auto;
+       }
+       #cmtctn{
+        border:1px solid black;
+        display: none;
+        position: fixed;
+        margin-left: 30%;
+        background-color: white;
+        width: fit-content;
+       }
+       #msginput{
+        padding: 10px;
+        font-size: 20px;
+       }
+       button{
+        padding:10px;
+        font-size:20px;
+        cursor: pointer;
+       }
+       .line{
+        color: white;
+        width: 500px;
+       }
+       .cmtemail{
+        background-color: blue;
+        padding: 5px;
+        color: white;
+        font-size: 19px;
+       }
+    .personcmt{
+       margin-bottom: 10px;
+    }
+    .cmtmsgdata{
+        padding: 5px;
+    }
+    #mypost{
+        display: none;
+    }
+
+    </style>
+    </head>
+
+    <body>
+        <div class="ctn" id="ctn">
+            <div class="logo">Social Media</div>
+            <div class="nav">
+                <div class="nav-1">
+                    <input id="search" type="search" placeholder="Search...">
+                    <button class="btn">Search</button>
+                </div>
+                <div id="Username" class="Username" onclick="profile()"></div>
+            </div>
+        </div>
+
+            <div id="cmtctn">
+                <div id="msgctn"></div>
+                <input type="text" placeholder="enter text here..." id="msginput"><button onclick="sendcmt()">Send</button>
+            </div>
+            <div id="MyPostctn"></div>
+     
+        <a id="mypost" href="./mypost">hello</a>
+        <script>
+                  var flag = false;
+                  var opencommentemail = '';
+                  var openpostid = ''
+           function sendcmt(){
+            const data = document.getElementById('msginput');
+            
+           let cmtmessage = new XMLHttpRequest()
+           cmtmessage.open('POST',`./Createcomment?token=${localStorage.getItem('token')}&email=${opencommentemail}&postid=${openpostid}&commentdata=${data.value}`,true)
+           cmtmessage.onload = function(){
+            const cmtdata = JSON.parse(this.response)
+          
+            const cmtctn = document.getElementById('msgctn');
+            const cmtmsgctn = document.createElement('div');
+            cmtmsgctn.innerHTML = `<div class="cmtemail">${cmtdata.email}</div>
+                                   <div classl="cmtdata">${data.value}</div>`
+            cmtmsgctn.classList.add('personcmt');
+            cmtctn.append(cmtmsgctn)
+            data.value = '';
+            
+           }
+           cmtmessage.send();
+           }
+       
+
+
+        function profile() {
+            document.getElementById('mypost').click();
+        }
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', `./allpost?token=${localStorage.getItem('token')}`, true)
+        xhr.onload = function() {
+            console.log(this.response)
+            const a = JSON.parse(this.response)
+            document.getElementById('Username').innerHTML = a.name;
+            const Postctn = document.getElementById('MyPostctn')
+            for (let i = 0; i < a.data.length; i++) {
+                console.log(a.data[i])
+                let person = document.createElement('div');
+                person.innerText = a.data[i].postemail;
+                person.classList.add('postemail')
+                let line = document.createElement('hr');
+                line.classList.add('line')
+                let Post = document.createElement('div')
+                Post.classList.add('Post')
+                Post.innerText = a.data[i].postData;
+                let Tittle = document.createElement('div')
+                Tittle.classList.add('PostTittle')
+                Tittle.innerText = a.data[i].postTitle;
+                let Comment = document.createElement('button')
+                Comment.classList.add('Comment')
+                Comment.innerText = "Comment";
+                Comment.onclick = function(){
+                    document.getElementById('msgctn').innerHTML=""
+                    if(flag === false){
+                 document.getElementById('cmtctn').style.display="block";
+                 opencommentemail = a.data[i].postemail
+                 openpostid = a.data[i].emailPostId
+                 let cmt = new XMLHttpRequest();
+                 cmt.open('GET',`./Showcomment?email=${a.data[i].postemail}&postid=${a.data[i].emailPostId}`,true);
+                 cmt.onload = function(){
+                    const cmtdata= JSON.parse(this.response);
+                    const cmtctn = document.getElementById('msgctn');
+                    for(let i=0;i<cmtdata.data.length;i++){
+                        const cmtmsgctn = document.createElement('div');
+                        cmtmsgctn.innerHTML = `<div class="cmtemail">${cmtdata.data[i].email}</div>
+                                               <div class="cmtmsgdata">${cmtdata.data[i].commentdata}</div>`
+                        cmtmsgctn.classList.add('personcmt');
+                        cmtctn.append(cmtmsgctn);
+
+
+                    }
+                  
+                    console.log(this.response)
+                 }
+                 cmt.send();
+                 flag=true;
+               }else{
+                   document.getElementById('cmtctn').style.display="none";
+                 flag=false;
+               }
+                };
+              
+                Post.prepend(person, line,Tittle)
+                
+                let LikeComment = document.createElement('div')
+                LikeComment.classList.add('LikeComment')
+                LikeComment.append( Comment)
+                Post.append(LikeComment)
+                Postctn.append(Post)
+            }
+        }
+        xhr.send();
+    </script>
+    </body>
+
+</html>
